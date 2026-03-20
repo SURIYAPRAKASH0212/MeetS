@@ -1,4 +1,5 @@
 const socket = io("/");
+alert("✅ New Code Loaded! Both names will now sync perfectly!");
 
 // UI Elements
 const landingContainer = document.getElementById('landing-container');
