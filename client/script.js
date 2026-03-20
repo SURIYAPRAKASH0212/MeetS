@@ -114,18 +114,22 @@ socket.on('user-left', (user) => {
 });
 
 // Handle incoming WebRTC offer
-socket.on('offer', async (offer) => {
+socket.on('offer', async (data) => {
+    if (data.username) remoteNameLabel.textContent = data.username;
+    
     if (!peerConnection) createPeerConnection();
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
 
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
-    socket.emit('answer', answer);
+    socket.emit('answer', { answer, username });
 });
 
 // Handle incoming WebRTC answer
-socket.on('answer', async (answer) => {
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+socket.on('answer', async (data) => {
+    if (data.username) remoteNameLabel.textContent = data.username;
+    
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
 });
 
 // Handle incoming ICE candidate
@@ -168,7 +172,7 @@ async function makeCall() {
     createPeerConnection();
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
-    socket.emit('offer', offer);
+    socket.emit('offer', { offer, username });
 }
 
 // --- Control Buttons --- //
