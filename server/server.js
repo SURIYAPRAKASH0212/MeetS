@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
         socket.roomId = roomId; // store room and username on socket
         socket.username = username;
 
-        // Tell the joining user about the existing user (if any)
+        // Tell the joining user about the existing user (if any), and explicitly emit to the existing user
         if (roomSize === 1) {
             const clients = io.sockets.adapter.rooms.get(roomId);
             if (clients) {
@@ -46,14 +46,14 @@ io.on('connection', (socket) => {
                         const otherSocket = io.sockets.sockets.get(clientId);
                         if (otherSocket) {
                             socket.emit('existing-user', { id: otherSocket.id, username: otherSocket.username });
+                            otherSocket.emit('user-joined', { id: socket.id, username });
                         }
                     }
                 }
             }
+        } else {
+            socket.to(roomId).emit('user-joined', { id: socket.id, username });
         }
-
-        // Notify others in the room
-        socket.to(roomId).emit('user-joined', { id: socket.id, username });
     });
 
     // WebRTC Signaling
