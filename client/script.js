@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io("/");
 
 // UI Elements
 const landingContainer = document.getElementById('landing-container');
@@ -58,7 +58,7 @@ joinBtn.addEventListener('click', async () => {
         landingContainer.classList.add('hidden');
         callContainer.classList.remove('hidden');
         roomDisplay.textContent = `Room: ${roomId}`;
-        
+
         socket.emit('join-room', { roomId, username });
         addSystemMessage(`You joined the room.`);
     } catch (error) {
@@ -86,6 +86,12 @@ socket.on('user-joined', async (user) => {
     await makeCall();
 });
 
+// We joined a room where someone is already present
+socket.on('existing-user', (user) => {
+    addSystemMessage(`${user.username} is already in the room.`);
+    remoteNameLabel.textContent = user.username;
+});
+
 // The other user left
 socket.on('user-left', (user) => {
     addSystemMessage(`${user.username} left the room.`);
@@ -101,7 +107,7 @@ socket.on('user-left', (user) => {
 socket.on('offer', async (offer) => {
     if (!peerConnection) createPeerConnection();
     await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-    
+
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
     socket.emit('answer', answer);
@@ -189,7 +195,7 @@ chatInput.addEventListener('keypress', (e) => {
 function sendMessage() {
     const text = chatInput.value.trim();
     if (text === '') return;
-    
+
     socket.emit('chat-message', { message: text });
     appendMessage('You', text, true);
     chatInput.value = '';
@@ -199,12 +205,12 @@ function appendMessage(sender, text, isMine) {
     const div = document.createElement('div');
     div.classList.add('message');
     if (isMine) div.classList.add('my-message');
-    
+
     div.innerHTML = `
         <div class="message-sender">${sender}</div>
         <div class="message-text">${text}</div>
     `;
-    
+
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }

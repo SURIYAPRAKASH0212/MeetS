@@ -7,9 +7,16 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+
 // Serve static files from the client directory
 app.use(express.static(path.join(__dirname, '../client')));
+const path = require("path");
 
+app.use(express.static(path.join(__dirname, "../client")));
+
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/index.html"));
+});
 // Store room states (how many users in a room)
 const rooms = new Map();
 
@@ -29,6 +36,21 @@ io.on('connection', (socket) => {
         rooms.set(roomId, roomSize + 1);
         socket.roomId = roomId; // store room and username on socket
         socket.username = username;
+
+        // Tell the joining user about the existing user (if any)
+        if (roomSize === 1) {
+            const clients = io.sockets.adapter.rooms.get(roomId);
+            if (clients) {
+                for (const clientId of clients) {
+                    if (clientId !== socket.id) {
+                        const otherSocket = io.sockets.sockets.get(clientId);
+                        if (otherSocket) {
+                            socket.emit('existing-user', { id: otherSocket.id, username: otherSocket.username });
+                        }
+                    }
+                }
+            }
+        }
 
         // Notify others in the room
         socket.to(roomId).emit('user-joined', { id: socket.id, username });
@@ -71,6 +93,7 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`MeetS Server running on port ${PORT}`);
+
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
