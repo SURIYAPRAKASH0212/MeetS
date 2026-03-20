@@ -44,6 +44,14 @@ const servers = {
 };
 
 // --- Initialization & UI --- //
+usernameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') joinBtn.click();
+});
+
+roomInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') joinBtn.click();
+});
+
 joinBtn.addEventListener('click', async () => {
     username = usernameInput.value.trim();
     roomId = roomInput.value.trim();
