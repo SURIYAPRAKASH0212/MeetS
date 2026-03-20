@@ -11,6 +11,7 @@ const roomDisplay = document.getElementById('room-display');
 
 const localVideo = document.getElementById('local-video');
 const remoteVideo = document.getElementById('remote-video');
+const localNameLabel = document.getElementById('local-name');
 const remoteNameLabel = document.getElementById('remote-name');
 
 const micBtn = document.getElementById('mic-btn');
@@ -66,6 +67,7 @@ joinBtn.addEventListener('click', async () => {
         landingContainer.classList.add('hidden');
         callContainer.classList.remove('hidden');
         roomDisplay.textContent = `Room: ${roomId}`;
+        localNameLabel.textContent = `${username} (You)`;
 
         socket.emit('join-room', { roomId, username });
         addSystemMessage(`You joined the room.`);
